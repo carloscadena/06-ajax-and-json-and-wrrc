@@ -85,7 +85,15 @@
     <script src="scripts/articleView.js"></script>
     <script>
       // This function calls all the functions that set up our index page and populate the page with article data.
-      articleView.initIndexPage();
+      let promise = new Promise(function(resolve, reject) {
+        console.log('resolved')
+        Article.fetchAll();
+      });
+      
+      promise.then(() => {
+        debugger;
+        articleView.initIndexPage()
+      });
     </script>
   </body>
 </html>

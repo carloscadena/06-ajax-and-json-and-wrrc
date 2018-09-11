@@ -46,22 +46,51 @@ Article.loadAll = articleData => {
   articleData.forEach(articleObject => Article.all.push(new Article(articleObject)))
 }
 
+Article.fetchJson = () => {
+  $.ajax({
+    method: 'GET',
+    url: '../data/hackerIpsum.json',
+    async: false,
+    success: (data, message, xhr) => {
+      console.log('hit first')
+      localStorage.setItem('rawData', JSON.stringify(data));
+      localStorage.setItem('ETag', JSON.stringify(xhr.getResponseHeader('ETag')));
+      return data;
+    },
+    error: (xhr) => console.log(xhr.responseText)
+  }).then((data) => {
+    console.log('then print');
+    Article.loadAll(data);
+  });
+}
+
 // REVIEW: This function will retrieve the data from either a local or remote source, and process it, then hand off control to the View.
 Article.fetchAll = () => {
   // REVIEW: What is this 'if' statement checking for? Where was the rawData set to local storage?
 
   // We check if the data is in local storage. If it is not, we load it from the remote, and set it into local storage. The next time the page is loaded is loads from local storage.
+  let eTag;
+
   if (localStorage.rawData) {
-    Article.loadAll(JSON.parse(localStorage.rawData));
-  } else {
     $.ajax({
-      method: 'GET',
-      url: '../data/hackerIpsum.json',
-      success: (data) => {
-        localStorage.setItem('rawData', JSON.stringify(data));
-        Article.loadAll(data);
+      method: 'HEAD',
+      async: true,
+      success: function(data, message, xhr) {
+        eTag = xhr.getResponseHeader('ETag');
       },
       error: (xhr) => console.log(xhr.responseText)
-    });
+    }).then(() => {
+      if (eTag !== localStorage.getItem('ETag')) {
+        // debugger;
+        // prints to the console
+        console.log('update');
+        Article.fetchJson();
+      } else {
+        Article.loadAll(JSON.parse(localStorage.rawData));
+      }
+    })
+  } else {
+    console.log('no local storage raw data')
+    Article.fetchJson();
   }
 }
