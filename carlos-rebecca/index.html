@@ -86,13 +86,13 @@
     <script>
       // This function calls all the functions that set up our index page and populate the page with article data.
       let promise = new Promise(function(resolve, reject) {
-        console.log('resolved')
-        Article.fetchAll();
+        resolve = articleView.initIndexPage();
+        console.log(resolve);
+        // Article.fetchAll();
       });
       
       promise.then(() => {
-        debugger;
-        articleView.initIndexPage()
+        console.log('after promise')
       });
     </script>
   </body>

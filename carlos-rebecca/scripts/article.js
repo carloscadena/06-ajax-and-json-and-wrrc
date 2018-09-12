@@ -50,11 +50,12 @@ Article.fetchJson = () => {
   $.ajax({
     method: 'GET',
     url: '../data/hackerIpsum.json',
-    async: false,
-    success: (data, message, xhr) => {
+    async: true,
+    complete: (data, message, xhr) => {
       console.log('hit first')
       localStorage.setItem('rawData', JSON.stringify(data));
-      localStorage.setItem('ETag', JSON.stringify(xhr.getResponseHeader('ETag')));
+      // debugger;
+      localStorage.setItem('ETag', xhr.getResponseHeader('ETag'));
       return data;
     },
     error: (xhr) => console.log(xhr.responseText)
@@ -69,25 +70,25 @@ Article.fetchAll = () => {
   // REVIEW: What is this 'if' statement checking for? Where was the rawData set to local storage?
 
   // We check if the data is in local storage. If it is not, we load it from the remote, and set it into local storage. The next time the page is loaded is loads from local storage.
-  let eTag;
 
   if (localStorage.rawData) {
     $.ajax({
       method: 'HEAD',
       async: true,
       success: function(data, message, xhr) {
-        eTag = xhr.getResponseHeader('ETag');
+        let eTag = xhr.getResponseHeader('ETag');
+
+        if (eTag !== localStorage.getItem('ETag')) {
+          // debugger;
+          // prints to the console
+          console.log('update');
+          Article.fetchJson();
+        } else {
+          console.log('nothing has changed')
+          Article.loadAll(JSON.parse(localStorage.rawData));
+        }
       },
       error: (xhr) => console.log(xhr.responseText)
-    }).then(() => {
-      if (eTag !== localStorage.getItem('ETag')) {
-        // debugger;
-        // prints to the console
-        console.log('update');
-        Article.fetchJson();
-      } else {
-        Article.loadAll(JSON.parse(localStorage.rawData));
-      }
     })
   } else {
     console.log('no local storage raw data')
